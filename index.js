@@ -10,6 +10,8 @@ var routil = require("routil")
 module.exports = Session
 
 function Session(options) {
+    options = options || {}
+
     var redirect = options.redirect || routilRedirect
         , Store = options.Store || memoryStore
         , cookieName = options.cookieName || "session_id"
@@ -24,14 +26,14 @@ function Session(options) {
 
     function createSession(res, data, callback) {
         var sessionId = uuid()
-        routil.setCookie(res, cookieName, sessionId)
+        setCookie(res, cookieName, sessionId)
 
         Store.set(sessionId, data, callback)
     }
 
     function destroySession(req, res, callback) {
-        var sessionId = routil.getCookie(req, cookieName)
-        routil.setCookie(res, cookieName, null, {
+        var sessionId = getCookie(req, cookieName)
+        setCookie(res, cookieName, null, {
             expires: new Date(0)
         })
 
@@ -43,7 +45,7 @@ function Session(options) {
     }
 
     function getSession(req, callback) {
-        var sessionId = routil.getCookie(req, cookieName)
+        var sessionId = getCookie(req, cookieName)
 
         if (sessionId === null) {
             return callback(null, null)
@@ -53,7 +55,7 @@ function Session(options) {
     }
 
     function getSessionData(req, res, callback) {
-        getSession(req, callback, partial(redirectIfNull, req, res))
+        getSession(req, partial(redirectIfNull, req, res, callback))
     }
 
     function redirectIfNull(req, res, callback, err, data) {

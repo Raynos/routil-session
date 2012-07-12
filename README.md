@@ -6,7 +6,9 @@ Session handling for routil
 
     var Session = require("routil-session")
         , session = Session({
-            store: require("memory-store")
+            store: require("mongo-store")({
+                collection: require("mongo-col")("sessions")
+            })
         })
         , http = require("http")
 
@@ -14,21 +16,25 @@ Session handling for routil
 
     function handler(req, res) {
         if (req.url === "/create") {
-            session.createSession(req, res, {
-                foo: "foo"
-            }, endRespone)
+            session.createSession(res, {
+                foo: "data!"
+            }, endResponseCreate)
         } else if (req.url === "/get") {
             session.getSession(req, returnSessionData)
         } else if (req.url === "/destroy") {
-            session.destroySession(req, res, endResponse)
+            session.destroySession(req, res, endResponseDelete)
         }
 
-        function endResponse(err) {
-            res.end()
+        function endResponseCreate(err) {
+            res.end("created!")
+        }
+
+        function endResponseDelete(err) {
+            res.end("deleted!")
         }
 
         function returnSessionData(err, data) {
-            res.end(data.foo)
+            res.end((data && data.foo) || "no data")
         }
     }
 
